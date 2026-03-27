@@ -1,0 +1,5 @@
+# Drop audio here before uploading to the bucket; keep binaries out of git.
+meditations/**/*.mp3
+meditations/**/*.m4a
+meditations/**/*.wav
+meditations/**/*.opus

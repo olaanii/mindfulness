@@ -1,0 +1,23 @@
+[
+  {
+    "id": "morning_grounding_5m",
+    "title": "Morning grounding",
+    "duration": 300,
+    "category": "calm",
+    "audioUrl": "https://samplelib.com/lib/preview/mp3/sample-12s.mp3"
+  },
+  {
+    "id": "midday_reset_10m",
+    "title": "Midday reset",
+    "duration": 600,
+    "category": "focus",
+    "audioUrl": "https://samplelib.com/lib/preview/mp3/sample-6s.mp3"
+  },
+  {
+    "id": "evening_body_scan_15m",
+    "title": "Evening body scan",
+    "duration": 900,
+    "category": "sleep",
+    "audioUrl": "https://samplelib.com/lib/preview/mp3/sample-9s.mp3"
+  }
+]
