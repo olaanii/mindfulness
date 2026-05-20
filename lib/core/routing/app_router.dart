@@ -41,19 +41,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: '/meditation/:id',
-        builder: (context, state) => MeditationPlayerScreen(
-          meditationId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) =>
+            MeditationPlayerScreen(meditationId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => const AccountScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

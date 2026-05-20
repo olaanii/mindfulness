@@ -22,8 +22,9 @@ class WarmCard extends StatelessWidget {
       width: width,
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(AppColors.radiusLg),
+        color: AppColors.glassPanel,
+        border: Border.all(color: AppColors.glassBorder),
+        borderRadius: BorderRadius.circular(AppColors.radiusXl),
         boxShadow: AppColors.cardShadow(context),
       ),
       child: child,
@@ -35,7 +36,7 @@ class WarmCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.radiusLg),
+        borderRadius: BorderRadius.circular(AppColors.radiusXl),
         child: decorated,
       ),
     );

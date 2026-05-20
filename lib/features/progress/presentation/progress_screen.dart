@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindfulness/core/theme/app_colors.dart';
 import 'package:mindfulness/features/progress/domain/progress_math.dart';
 import 'package:mindfulness/features/progress/providers/progress_providers.dart';
-import 'package:mindfulness/widgets/warm_card.dart';
+import 'package:mindfulness/widgets/mindful_ui.dart';
 
 String _shortWeekday(DateTime d) {
   const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -52,87 +52,178 @@ class ProgressOverviewContent extends ConsumerWidget {
             onRetry: () => ref.invalidate(recentSessionsProvider),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         progress.when(
           data: (p) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('This week', style: text.titleMedium),
-              const SizedBox(height: 6),
-              Text(
-                '${fmtProgressMinutes(p.totalFocusSecondsWeek)} focus · '
-                '${fmtProgressMinutes(p.totalMindfulnessSecondsWeek)} mindfulness '
-                '(meditation + breathing)',
-                style: text.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
+              GlassPanel(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 26,
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 28,
+                      color: AppColors.accentCoral,
+                    ),
+                    const SizedBox(height: 10),
+                    const SectionEyebrow('Total mindful minutes'),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${((p.totalFocusSecondsWeek + p.totalMindfulnessSecondsWeek) / 60).round()}',
+                      style: text.headlineLarge?.copyWith(
+                        color: AppColors.accentCoral,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'This week across focus, meditation, and breathing.',
+                      textAlign: TextAlign.center,
+                      style: text.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                height: 200,
-                child: _WeeklyStackedChart(
-                  week: p.week,
-                  focusColor: scheme.primary,
-                  mindfulnessColor: scheme.tertiary,
+              GlassPanel(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SectionEyebrow('This week'),
+                    const SizedBox(height: 8),
+                    Text('Activity overview', style: text.titleLarge),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${fmtProgressMinutes(p.totalFocusSecondsWeek)} focus · '
+                      '${fmtProgressMinutes(p.totalMindfulnessSecondsWeek)} mindfulness',
+                      style: text.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      height: 220,
+                      child: _WeeklyStackedChart(
+                        week: p.week,
+                        focusColor: AppColors.textBrand,
+                        mindfulnessColor: AppColors.accentCoral,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _ChartLegend(
+                      focusColor: AppColors.textBrand,
+                      mindfulnessColor: AppColors.accentCoral,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              _ChartLegend(
-                focusColor: scheme.primary,
-                mindfulnessColor: scheme.tertiary,
               ),
             ],
           ),
           loading: () => const SizedBox.shrink(),
           error: (error, stackTrace) => const SizedBox.shrink(),
         ),
-        const SizedBox(height: 28),
-        Text('Mood (last 7 days)', style: text.titleMedium),
-        const SizedBox(height: 8),
-        Text(
-          'Average after check-in, by day. Tap Log mood to add an entry.',
-          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 96,
-          child: _MoodTrendRow(trend: moodTrend, scheme: scheme),
-        ),
         const SizedBox(height: 16),
-        moodsAsync.when(
-          data: (list) {
-            if (list.isEmpty) {
-              return Text(
-                'No mood entries yet.',
-                style: text.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
+        GlassPanel(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionEyebrow('Mood · last 7 days'),
+              const SizedBox(height: 8),
+              Text('Check-in trend', style: text.titleLarge),
+              const SizedBox(height: 6),
+              Text(
+                'Average after check-in, by day. Tap Log mood to add an entry.',
+                style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 110,
+                child: _MoodTrendRow(trend: moodTrend, scheme: scheme),
+              ),
+              const SizedBox(height: 20),
+              moodsAsync.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return Text(
+                      'No mood entries yet.',
+                      style: text.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    );
+                  }
+                  final preview = list.take(4).toList();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Recent', style: text.titleSmall),
+                      const SizedBox(height: 10),
+                      for (final m in preview) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.glassBorder),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceMuted,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${m.moodAfter}',
+                                  style: text.titleSmall?.copyWith(
+                                    color: AppColors.textBrand,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${m.moodBefore} → ${m.moodAfter}',
+                                      style: text.titleSmall,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatDateTimeLocal(m.createdAt),
+                                      style: text.bodySmall?.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                  );
+                },
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => _RetryMessage(
+                  message: 'Could not load moods.',
+                  detail: '$e',
+                  onRetry: () => ref.invalidate(recentMoodsProvider),
                 ),
-              );
-            }
-            final preview = list.take(5).toList();
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Recent', style: text.titleSmall),
-                const SizedBox(height: 8),
-                for (final m in preview)
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      '${m.moodBefore} → ${m.moodAfter}',
-                      style: text.titleSmall,
-                    ),
-                    subtitle: Text(_formatDateTimeLocal(m.createdAt)),
-                  ),
-              ],
-            );
-          },
-          loading: () => const LinearProgressIndicator(),
-          error: (e, _) => _RetryMessage(
-            message: 'Could not load moods.',
-            detail: '$e',
-            onRetry: () => ref.invalidate(recentMoodsProvider),
+              ),
+            ],
           ),
         ),
       ],
@@ -163,9 +254,9 @@ class _RetryMessage extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             detail,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: scheme.error,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: scheme.error),
           ),
           TextButton.icon(
             onPressed: onRetry,
@@ -186,33 +277,59 @@ class _StreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return WarmCard(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      child: Row(
+    return GlassPanel(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+      child: Column(
         children: [
-          Icon(
-            Icons.local_fire_department_outlined,
-            size: 40,
-            color: AppColors.accentCoral,
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SectionEyebrow('Current streak'),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '$streak',
-                style: text.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: text.headlineLarge?.copyWith(color: AppColors.textBrand),
               ),
-              Text(
-                streak == 1 ? 'day streak' : 'days streak',
-                style: text.titleSmall?.copyWith(
-                  color: AppColors.textSecondary,
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  streak == 1 ? 'day' : 'days',
+                  style: text.titleMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (index) => Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  color: index < streak.clamp(0, 5)
+                      ? AppColors.textBrand
+                      : AppColors.outlineMuted,
+                  shape: BoxShape.circle,
+                  boxShadow: index < streak.clamp(0, 5)
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primaryYellow.withValues(
+                              alpha: 0.3,
+                            ),
+                            blurRadius: 8,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -303,8 +420,11 @@ class _WeeklyStackedChart extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(6),
                     ),
-                    rodStackItems:
-                        _stackItems(week[i], focusColor, mindfulnessColor),
+                    rodStackItems: _stackItems(
+                      week[i],
+                      focusColor,
+                      mindfulnessColor,
+                    ),
                   );
                 }(),
               ],
@@ -352,20 +472,20 @@ class _ChartLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget legend(String label, Color c) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: c,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(label, style: Theme.of(context).textTheme.labelMedium),
-          ],
-        );
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: c,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+      ],
+    );
 
     return Row(
       children: [

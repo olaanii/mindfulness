@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindfulness/core/theme/app_colors.dart';
 import 'package:mindfulness/features/auth/providers/auth_providers.dart';
 import 'package:mindfulness/features/mood/data/mood_repository.dart';
+import 'package:mindfulness/widgets/mindful_ui.dart';
 
 Future<void> showMoodCheckInSheet(
   BuildContext context,
@@ -19,7 +20,9 @@ Future<void> showMoodCheckInSheet(
         final user = ref.read(authServiceProvider).currentUser;
         if (user == null) return;
         try {
-          await ref.read(moodRepositoryProvider).addEntry(
+          await ref
+              .read(moodRepositoryProvider)
+              .addEntry(
                 userId: user.uid,
                 moodBefore: before,
                 moodAfter: after,
@@ -29,9 +32,9 @@ Future<void> showMoodCheckInSheet(
           if (ctx.mounted) Navigator.of(ctx).pop();
         } catch (e) {
           if (!ctx.mounted) return;
-          ScaffoldMessenger.of(ctx).showSnackBar(
-            SnackBar(content: Text('Could not save: $e')),
-          );
+          ScaffoldMessenger.of(
+            ctx,
+          ).showSnackBar(SnackBar(content: Text('Could not save: $e')));
         }
       },
     ),
@@ -39,17 +42,15 @@ Future<void> showMoodCheckInSheet(
 }
 
 class _MoodSheetScaffold extends StatelessWidget {
-  const _MoodSheetScaffold({
-    required this.onSubmit,
-    this.sessionId,
-  });
+  const _MoodSheetScaffold({required this.onSubmit, this.sessionId});
 
   final Future<void> Function(int before, int after, String? note) onSubmit;
   final String? sessionId;
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.paddingOf(context).bottom +
+    final bottom =
+        MediaQuery.paddingOf(context).bottom +
         24 +
         MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
@@ -57,18 +58,16 @@ class _MoodSheetScaffold extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.headerGlass,
+          border: Border.all(color: AppColors.glassBorder),
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppColors.radiusLg),
+            top: Radius.circular(AppColors.radiusXl),
           ),
           boxShadow: AppColors.cardShadow(context),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-          child: _MoodCheckInForm(
-            sessionId: sessionId,
-            onSubmit: onSubmit,
-          ),
+          child: _MoodCheckInForm(sessionId: sessionId, onSubmit: onSubmit),
         ),
       ),
     );
@@ -117,52 +116,83 @@ class _MoodCheckInFormState extends State<_MoodCheckInForm> {
           ),
         ),
         const SizedBox(height: 20),
+        const SectionEyebrow('Mindful reflection'),
+        const SizedBox(height: 10),
         Text(
           'How are you feeling?',
-          style: text.titleLarge,
+          style: text.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Take a brief pause and notice what shifted during your session.',
+          style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          height: 140,
-          child: Stack(
-            alignment: Alignment.center,
+        GlassPanel(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+          child: Column(
             children: [
-              _ConcentricRings(color: AppColors.accentCoral.withValues(alpha: 0.12)),
+              SizedBox(
+                height: 140,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    _ConcentricRings(
+                      color: AppColors.accentCoral.withValues(alpha: 0.12),
+                    ),
+                    Text(
+                      _emojiFor(_after),
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
               Text(
-                _emojiFor(_after),
-                style: const TextStyle(fontSize: 48),
+                _labels[_after - 1],
+                style: text.titleSmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          _labels[_after - 1],
-          style: text.titleSmall?.copyWith(color: AppColors.textSecondary),
-          textAlign: TextAlign.center,
+        const SizedBox(height: 16),
+        GlassPanel(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Before', style: text.titleSmall),
+              const SizedBox(height: 10),
+              _MoodEmojiTrack(
+                value: _before,
+                onChanged: (v) => setState(() => _before = v),
+              ),
+              const SizedBox(height: 18),
+              Text('After', style: text.titleSmall),
+              const SizedBox(height: 10),
+              _MoodEmojiTrack(
+                value: _after,
+                onChanged: (v) => setState(() => _after = v),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        Text('Before', style: text.titleSmall),
-        const SizedBox(height: 8),
-        _MoodEmojiTrack(
-          value: _before,
-          onChanged: (v) => setState(() => _before = v),
-        ),
-        const SizedBox(height: 20),
-        Text('After', style: text.titleSmall),
-        const SizedBox(height: 8),
-        _MoodEmojiTrack(
-          value: _after,
-          onChanged: (v) => setState(() => _after = v),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _note,
-          maxLines: 2,
-          textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            labelText: 'Note (optional)',
+        const SizedBox(height: 16),
+        GlassPanel(
+          padding: const EdgeInsets.all(20),
+          child: TextField(
+            controller: _note,
+            maxLines: 3,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'Note (optional)',
+              hintText: 'A few words about what you noticed...',
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -232,10 +262,7 @@ class _RingsPainter extends CustomPainter {
 }
 
 class _MoodEmojiTrack extends StatelessWidget {
-  const _MoodEmojiTrack({
-    required this.value,
-    required this.onChanged,
-  });
+  const _MoodEmojiTrack({required this.value, required this.onChanged});
 
   final int value;
   final ValueChanged<int> onChanged;
@@ -248,7 +275,7 @@ class _MoodEmojiTrack extends StatelessWidget {
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         return SizedBox(
-          height: 56,
+          height: 64,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -299,14 +326,14 @@ class _EmojiDot extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 44,
-        height: 44,
+        width: 48,
+        height: 48,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(18),
           color: selected
               ? AppColors.primaryYellow
-              : AppColors.surfaceCard,
+              : Colors.white.withValues(alpha: 0.65),
           border: Border.all(
             color: selected
                 ? AppColors.accentCoral.withValues(alpha: 0.4)
